@@ -1,11 +1,11 @@
 G04 #@! TF.GenerationSoftware,KiCad,Pcbnew,9.0.7*
-G04 #@! TF.CreationDate,2026-05-14T20:09:29+01:00*
+G04 #@! TF.CreationDate,2026-05-21T19:34:21+01:00*
 G04 #@! TF.ProjectId,Pointy R1 Flight controller,506f696e-7479-4205-9231-20466c696768,rev?*
 G04 #@! TF.SameCoordinates,Original*
 G04 #@! TF.FileFunction,Profile,NP*
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW 9.0.7) date 2026-05-14 20:09:29*
+G04 Created by KiCad (PCBNEW 9.0.7) date 2026-05-21 19:34:21*
 %MOMM*%
 %LPD*%
 G01*
@@ -16,8 +16,8 @@ G04 #@! TD*
 G04 APERTURE END LIST*
 D10*
 X114250000Y-60750000D02*
-X174000000Y-60750000D01*
-X174000000Y-160750000D01*
+X174250000Y-60750000D01*
+X174250000Y-160750000D01*
 X114250000Y-160750000D01*
 X114250000Y-60750000D01*
 M02*
