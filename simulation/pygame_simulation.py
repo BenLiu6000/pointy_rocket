@@ -5,18 +5,8 @@ Needs Pygame for visual display
 This will be 2 dimensional, however I think it should be possible to go from 2 dimensions to 3 
 simply enough when designing for the actual rocket
 
-What still needs to be done for simulation:
-
--Providing better visual display and controls
-
-What needs to be done for a simulated flight control:
-
--Simulating turbulence
--Gimbaling using PID controller
-
-Key issues so far:
-
--I have no idea how to calculate moment of inertia
+To do:
+optimise PID controller coefficient values
 
 
 '''
@@ -30,6 +20,7 @@ import time
 from pygame.locals import *
 import sys
 import math
+import random
 import os
 
 #remember that in pygame y value goes up as you go lower
@@ -84,15 +75,17 @@ MAX_ROTATION_ANGLE = 2*math.pi
 
 SIMULATION_SCALE = 3 #amount of pixels per metre, eg scale 10 would be 1 metre per 10 pixels
 
-SIMULATION_SPEED = 1
+SIMULATION_SPEED = 0.25
 
 SPACING = 25 #number of metres betwen each of the green lines
 
 MAX_HEIGHT = 0
 
+TURBULENCE_AMPLITUDE = 2
+
 #global variables
 TIME = 0
-
+ 
 class Rocket:
     def __init__(self):
         global INITIAL_DISPLACEMENT
@@ -104,6 +97,7 @@ class Rocket:
         self.desiredAngle = 0
         self.centreOfGravity = (0,0)
         self.mass = 1
+        self.angleIntegral = 0
 
 
 
@@ -133,7 +127,7 @@ def draw_graphics():
 
     pygame.draw.line(WINDOW, (0,0,200), playerPositionInSim, vec_add(playerPositionInSim, vec_multiply(thrustDirection,100)), 3)
     pygame.draw.line(WINDOW, (200,200,200), playerPositionInSim, vec_add(playerPositionInSim, vec_multiply(rocketDirection,100)), 3)
-    pygame.draw.line(WINDOW, (200,0,200), playerPositionInSim, vec_add(playerPositionInSim, vec_multiply(vec_normalise(forceVector),100)), 3)
+    #pygame.draw.line(WINDOW, (200,0,200), playerPositionInSim, vec_add(playerPositionInSim, vec_multiply(vec_normalise(forceVector),100)), 3)
 
     draw_text(f"TIME: {round(TIME,2)}s",900,20)
     draw_text(f"THRUST: {round(ENGINE_THRUST*3,2)}N",900,50)
@@ -146,6 +140,9 @@ def draw_graphics():
     draw_text(f"THRUST-ANG: {round(POINTY.thrustAngle,2)}rad",900,260)
     draw_text(f"ROCKET-MASS: {round(POINTY.mass,2)}kg",900,290)
     draw_text(f"ENGINE-AMT: 3",900,320)
+    draw_text(f"CURRENT TURBULENCE: {round(get_turbulence()*POINTY.velocity[1]/POINTY.mass)} idk",800,350)
+    draw_text(f"TURBULENCE AMPLITUDE: {TURBULENCE_AMPLITUDE} idk",800,380)
+
 
 
 
@@ -196,6 +193,11 @@ def physics(deltaTime):
     POINTY.angle += POINTY.angularVelocity*deltaTime
 
     POINTY.angularVelocity += angularAccel*deltaTime/2
+
+
+    POINTY.angularVelocity += get_turbulence()*deltaTime*POINTY.velocity[1]/POINTY.mass
+
+    POINTY.angleIntegral += POINTY.angle*deltaTime
 
 
     #floor collision
@@ -271,9 +273,23 @@ def draw_rocket(position,angle):
 
 
 
+#creates a turbulence map 
+TURBULENCE_MAP = [0]
+def generate_turbulence(tmap,tamp):
+    timems = 0
+    while timems < 4000:
+        timems += 1
+        tmap.append((tmap[timems-1]*0.9) + ((random.random()*tamp) - tamp/2) )
+    return tmap
 
+generate_turbulence(TURBULENCE_MAP,TURBULENCE_AMPLITUDE)
 
-
+def get_turbulence():
+    global TURBULENCE_MAP, TIME
+    timems = round(TIME*1000)
+    if timems > 3500:
+        return 0
+    return TURBULENCE_MAP[timems]
 
 
 
@@ -318,14 +334,27 @@ def loop():
         pygame.display.update()
         pygame.time.Clock().tick(60) #just for testing while deltatime is being added
 
+proportionCoefficient = 1
+derivativeCoefficient = 0.1
+integralCoefficient = 0.01
 
 def PID_controller():
     global POINTY
-    return #return a value for the rocket motor angle
+    motorAngle = 0
 
-def turbulence():
-    global POINTY
-    #add some turbulence to the angle of the rocket (I think using POINTY.angle and POINTY.angularVelocity)
+    #proportion
+    motorAngle += -(POINTY.angle)*proportionCoefficient
+
+    #derivative
+    motorAngle += POINTY.angularVelocity*derivativeCoefficient
+
+    #integral
+    motorAngle += -(POINTY.angleIntegral)*integralCoefficient
+
+    return motorAngle #return a value for the rocket motor angle (which the servos will turn to)
+
+
+
 
 loop()
 
