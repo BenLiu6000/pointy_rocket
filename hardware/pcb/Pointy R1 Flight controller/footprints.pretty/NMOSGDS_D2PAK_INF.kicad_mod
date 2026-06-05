@@ -520,4 +520,15 @@
 		(uuid "4ab9cfb9-053b-41ac-85d8-25641b0bdc24")
 	)
 	(embedded_fonts no)
+	(model "${KIPRJMOD}/3d Models/IRLZ44NSTRLPBF.STEP"
+		(offset
+			(xyz 0 -1 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -90)
+		)
+	)
 )
