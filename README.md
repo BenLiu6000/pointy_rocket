@@ -4,6 +4,14 @@
 
 The project spans hardware design, embedded firmware, and a high-fidelity physics simulation, all living in this repository.
 
+-----
+
+## An SVCC Project with support from RS Components
+
+<img width="100" height="100" alt="RS Logo" src="https://github.com/BasilAmin/pointy_rocket/blob/main/Media/svcclogo.png" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width="100" height="100" alt="RS Logo" src="https://github.com/BasilAmin/pointy_rocket/blob/main/Media/RSlogo.png" />
+
+-----
+
 ## Authors
 
 - James Harcourt
@@ -11,7 +19,8 @@ The project spans hardware design, embedded firmware, and a high-fidelity physic
 - Ashkan Samali
 - Feargal Browne
 - Ben Liu
-
+- Ryan Doran
+  
 -----
 
 ## Project Overview
