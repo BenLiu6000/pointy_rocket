@@ -146,9 +146,9 @@ Requirements: `numpy`, `matplotlib`
 
 |Gain            |Value|
 |----------------|-----|
-|Kp              |5.0  |
+|Kp              |0.8  |
 |Kd              |1.5  |
-|Ki              |0.8  |
+|Ki              |0  |
 |Max gimbal angle|±8°  |
 
 ```bash
