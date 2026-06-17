@@ -13,3 +13,5 @@ Fundamental Simulation variables:
 - Motor Burn Time
 
 This is excluding the control system and strictly considers a point mass being propelled up. It does not really take much into consideration but is fundamental
+
+TO ADD UPDATED SPECIFICATIONS
