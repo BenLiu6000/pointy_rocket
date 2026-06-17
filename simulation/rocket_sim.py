@@ -8,12 +8,12 @@ import math
 
 # 1. Physical Parameters & 3D Definitions
 
-initial_total_mass = 1.23  # kg
+initial_total_mass = 0.8  # kg
 gravity_val = 9.802
 gravity_vec = np.array([0.0, -gravity_val, 0.0])  # World Frame (Y is UP)
 
 # Dynamic Mass Parameters
-initial_propellant_mass = 0.098  # kg
+initial_propellant_mass = 0.0941  # kg
 dry_mass = initial_total_mass - initial_propellant_mass
 
 # Center of Gravity Parameters
@@ -38,11 +38,11 @@ total_impulse = cum_impulse[-1]
 area_base = 0.00785  
 Cd_base = 0.75
 rho = 1.225  
-height = 0.99  
+height = 0.457  
 radius = 0.05  # m (diameter 0.1)
 
 # Parachute specs
-parachute_area = 0.28 
+parachute_area = 1 
 parachute_cd = 1.5
 
 # Fixed Aerodynamic Center of Pressure
@@ -53,9 +53,9 @@ MAX_GIMBAL_ANGLE_DEG = 8.0
 MAX_GIMBAL_ANGLE_RAD = math.radians(MAX_GIMBAL_ANGLE_DEG)
 SERVO_TAU = 0.05  
 
-Kp_gain = 5.0
+Kp_gain = 0.8
 Kd_gain = 1.5
-Ki_gain = 0.8
+Ki_gain = 0
 
 # Wind
 surface_wind = np.array([2.0, 0.0, 1.5])  # 3D Wind vector (m/s)
