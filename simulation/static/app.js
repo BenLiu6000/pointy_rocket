@@ -197,9 +197,15 @@ function renderResults(payload) {
     ["Flight time", `${format(payload.summary.flightTimeS)} s`],
     ["Max speed", `${format(payload.summary.maxSpeedMS)} m/s`],
     ["Max gimbal", `${format(payload.summary.maxGimbalDeg)} deg`],
+    ["Max tilt (powered)", `${format(payload.summary.maxTiltPoweredDeg)} deg`],
+    ["Tilt at burnout", `${format(payload.summary.tiltAtBurnoutDeg)} deg`],
+    ["Estimator error (powered)", `${format(payload.summary.maxEstErrorPoweredDeg)} deg`],
+    ["Gyro bias", `${format(payload.summary.gyroBiasDps)} deg/s`],
+    ["Control rate", `${format(payload.summary.controlRateHz)} Hz`],
+    ["Loop latency", `${format(payload.summary.loopLatencyMs)} ms`],
     ["Final X", `${format(payload.summary.finalX)} m`],
     ["Final Y", `${format(payload.summary.finalY)} m`],
-  ].forEach(([label, value]) => appendRow(summaryRows, label, value));
+  ].filter(([, value]) => !value.includes("NaN")).forEach(([label, value]) => appendRow(summaryRows, label, value));
   renderRocketPy(payload.rocketpy);
   drawPlot(payload.samples, payload.motor.points, payload.rocketpy && payload.rocketpy.samples);
   renderMatplotlib(payload.plotPng);
