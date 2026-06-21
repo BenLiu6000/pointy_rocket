@@ -22,7 +22,7 @@
       <header>
         <div>
           <h2>TVC simulator</h2>
-          <p>Upload or fetch one thrustcurve.org motor file, edit the vehicle, and predict burnout and apogee.</p>
+          <p>Upload or fetch one thrustcurve.org motor file, edit the vehicle, and predict flight. RocketPy supplies the trusted aerodynamics (centre of pressure, stability, passive trajectory when stable); the in-house TVC sim flies the actively steered rocket using those forces.</p>
         </div>
         <button id="runButton" type="button">Run simulation</button>
       </header>
@@ -114,14 +114,24 @@
       <section id="results">
         <h3>Results</h3>
         <div id="status" class="readout">Ready.</div>
+        <div id="notes" class="readout note" hidden></div>
         <div class="results">
           <div class="table-wrap">
+            <h4>Active flight &mdash; Pointy TVC</h4>
             <table>
               <tbody id="summaryRows"></tbody>
+            </table>
+            <h4>Aerodynamics &amp; passive flight &mdash; RocketPy</h4>
+            <table>
+              <tbody id="rocketpyRows"></tbody>
             </table>
           </div>
           <canvas id="plot" width="900" height="420"></canvas>
         </div>
+        <figure id="mplFigure" hidden>
+          <img id="mplPlot" alt="Matplotlib flight plots">
+          <figcaption><a id="mplDownload" download="pointy_rocket_plots.png">Download matplotlib PNG</a></figcaption>
+        </figure>
       </section>
     </main>
   </body>

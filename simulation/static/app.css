@@ -211,6 +211,24 @@ input[type="file"] {
   line-height: 1.4;
 }
 
+.readout.note {
+  margin-top: 10px;
+  border-color: #d8b771;
+  background: #fbf3df;
+  color: #6b5219;
+}
+
+.table-wrap h4 {
+  margin: 4px 0 6px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #4b473e;
+}
+
+.table-wrap h4 + table {
+  margin-bottom: 14px;
+}
+
 .results {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
@@ -248,6 +266,29 @@ canvas {
   border: 1px solid #d4d0c6;
   border-radius: 6px;
   background: #fffdfa;
+}
+
+#mplFigure {
+  grid-column: 1 / -1;
+  margin: 16px 0 0;
+}
+
+#mplFigure img {
+  width: 100%;
+  max-width: 960px;
+  border: 1px solid #d4d0c6;
+  border-radius: 6px;
+  background: #fffdfa;
+  display: block;
+}
+
+#mplFigure figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+#mplFigure a {
+  color: #6b5219;
 }
 
 @media (max-width: 860px) {
