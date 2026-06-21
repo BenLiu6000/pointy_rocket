@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="__CSRF_TOKEN__">
+    <title>Pointy Rocket Simulator</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <aside>
+      <h1>Pointy Rocket</h1>
+      <nav>
+        <a href="#motor">Motor</a>
+        <a href="#rocket">Rocket</a>
+        <a href="#flight">Flight</a>
+        <a href="#results">Results</a>
+      </nav>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <h2>TVC simulator</h2>
+          <p>Upload or fetch one thrustcurve.org motor file, edit the vehicle, and predict burnout and apogee.</p>
+        </div>
+        <button id="runButton" type="button">Run simulation</button>
+      </header>
+      <section id="motor">
+        <h3>Motor</h3>
+        <div class="panel">
+          <label>
+            Thrust curve file
+            <input id="motorFile" type="file" accept=".eng,.rse,.csv,text/plain,text/csv,application/xml">
+          </label>
+          <label>
+            Thrustcurve.org file URL
+            <span class="inline-control">
+              <input id="motorUrl" type="url" maxlength="500" placeholder="https://www.thrustcurve.org/...">
+              <button id="fetchButton" type="button">Fetch</button>
+            </span>
+          </label>
+          <div id="motorSummary" class="readout">No motor loaded.</div>
+        </div>
+      </section>
+      <section id="rocket">
+        <h3>Rocket specs</h3>
+        <div class="form-grid">
+          <label>Dry mass without motor (kg)<input data-spec="dryMass" type="number" min="0.01" step="0.001" value="1.061"></label>
+          <label>Body radius (m)<input data-spec="radius" type="number" min="0.001" step="0.001" value="0.05"></label>
+          <label>Body length (m)<input data-spec="length" type="number" min="0.01" step="0.01" value="0.99"></label>
+          <label>Pitch/yaw inertia (kg m^2)<input data-spec="inertiaI" type="number" min="0.000001" step="0.0001" value="0.088"></label>
+          <label>Roll inertia (kg m^2)<input data-spec="inertiaZ" type="number" min="0.000001" step="0.0001" value="0.0013"></label>
+          <label>Drag coefficient<input data-spec="dragCoefficient" type="number" min="0.05" max="3" step="0.01" value="0.75"></label>
+          <label>Motor position from tail (m)<input data-spec="motorPosition" type="number" step="0.001" value="0"></label>
+        </div>
+      </section>
+      <section>
+        <h3>CG calculator</h3>
+        <div class="panel split">
+          <div>
+            <label>
+              Body export
+              <input id="bodyFile" type="file" accept=".ork,.rkt,.cdx1,.csv,.tsv,text/xml,text/csv,text/tab-separated-values">
+            </label>
+            <div id="bodySummary" class="readout">No body export loaded.</div>
+            <div id="components"></div>
+          </div>
+          <button id="addComponent" type="button">Add component</button>
+        </div>
+      </section>
+      <section>
+        <h3>Finless CP calculator</h3>
+        <div class="form-grid">
+          <label>Nose length (m)<input data-spec="noseLength" type="number" min="0.001" step="0.001" value="0.22"></label>
+          <label>Nose shape<select data-spec="noseShape"><option value="vonKarman">Von Karman</option><option value="ogive">Ogive</option><option value="cone">Cone</option><option value="elliptical">Elliptical</option></select></label>
+          <label>Manual CP<select data-spec="useManualCp"><option value="false">No</option><option value="true">Yes</option></select></label>
+          <label>Manual CP from tail (m)<input data-spec="centerOfPressure" type="number" step="0.001" value="0.60"></label>
+        </div>
+      </section>
+      <section>
+        <h3>Motor model</h3>
+        <div class="form-grid">
+          <label>Motor dry mass (kg)<input data-spec="motorDryMass" type="number" min="0.001" step="0.001" value="0.0422"></label>
+          <label>Propellant mass (kg)<input data-spec="motorPropellantMass" type="number" min="0.001" step="0.001" value="0.0941"></label>
+        </div>
+      </section>
+      <section>
+        <h3>TVC</h3>
+        <div class="form-grid">
+          <label>Max gimbal (deg)<input data-spec="maxGimbalDeg" type="number" min="0" max="25" step="0.1" value="8"></label>
+          <label>Servo time constant (s)<input data-spec="servoTau" type="number" min="0.001" max="1" step="0.001" value="0.05"></label>
+          <label>Kp<input data-spec="kp" type="number" min="0" step="0.01" value="0.8"></label>
+          <label>Kd<input data-spec="kd" type="number" min="0" step="0.01" value="1.5"></label>
+          <label>Ki<input data-spec="ki" type="number" min="0" step="0.01" value="0"></label>
+          <label>Wind X (m/s)<input data-spec="windX" type="number" min="-50" max="50" step="0.1" value="0"></label>
+          <label>Wind Z (m/s)<input data-spec="windZ" type="number" min="-50" max="50" step="0.1" value="0"></label>
+        </div>
+      </section>
+      <section id="flight">
+        <h3>Launch and atmosphere</h3>
+        <div class="form-grid">
+          <label>Rail length (m)<input data-spec="railLength" type="number" min="0.1" step="0.1" value="1"></label>
+          <label>Inclination (deg)<input data-spec="inclination" type="number" min="1" max="90" step="0.1" value="85"></label>
+          <label>Heading (deg)<input data-spec="heading" type="number" min="0" max="360" step="0.1" value="90"></label>
+          <label>Max time (s)<input data-spec="maxTime" type="number" min="1" max="600" step="1" value="120"></label>
+          <label>Time step (s)<input data-spec="timeStep" type="number" min="0.001" max="0.05" step="0.001" value="0.01"></label>
+          <label>Latitude<input data-spec="latitude" type="number" min="-90" max="90" step="0.0001" value="53.3498"></label>
+          <label>Longitude<input data-spec="longitude" type="number" min="-180" max="180" step="0.0001" value="-6.2603"></label>
+          <label>Elevation (m)<input data-spec="elevation" type="number" min="-500" max="9000" step="1" value="20"></label>
+          <label>Stop at apogee<select data-spec="terminateOnApogee"><option value="false">No</option><option value="true">Yes</option></select></label>
+        </div>
+      </section>
+      <section id="results">
+        <h3>Results</h3>
+        <div id="status" class="readout">Ready.</div>
+        <div class="results">
+          <div class="table-wrap">
+            <table>
+              <tbody id="summaryRows"></tbody>
+            </table>
+          </div>
+          <canvas id="plot" width="900" height="420"></canvas>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -130,6 +130,18 @@ pip install -r requirements.txt
 
 Requirements: `numpy`, `matplotlib`
 
+### TVC Simulator GUI
+
+The browser GUI simulates one uploaded or fetched thrustcurve.org motor (`.eng`, `.rse`, or two-column `.csv`) with the TVC controller enabled. It can import `.ork`, `.rkt`, `.cdx1`, or component table body exports to fill the CG calculator, estimates finless body/nose CP, then reports predicted apogee, burnout time, burnout altitude, burnout speed, max speed, and max gimbal.
+
+```bash
+cd simulation
+pip install -r requirements.txt
+python gui_server.py
+```
+
+Open `http://127.0.0.1:8765`.
+
 ### 6-DOF Flight Simulation
 
 `rocket_sim.py` implements a full **6 Degrees of Freedom** rigid-body simulation using:
