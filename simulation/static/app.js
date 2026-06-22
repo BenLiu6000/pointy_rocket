@@ -5,7 +5,12 @@ const motorSummary = document.querySelector("#motorSummary");
 const runButton = document.querySelector("#runButton");
 const statusBox = document.querySelector("#status");
 const summaryRows = document.querySelector("#summaryRows");
+const rocketpyRows = document.querySelector("#rocketpyRows");
+const notes = document.querySelector("#notes");
 const plot = document.querySelector("#plot");
+const mplFigure = document.querySelector("#mplFigure");
+const mplPlot = document.querySelector("#mplPlot");
+const mplDownload = document.querySelector("#mplDownload");
 const components = document.querySelector("#components");
 const addComponent = document.querySelector("#addComponent");
 const bodyFile = document.querySelector("#bodyFile");
@@ -124,8 +129,11 @@ runButton.addEventListener("click", async () => {
     return;
   }
   runButton.disabled = true;
-  statusBox.textContent = "Running RocketPy...";
+  statusBox.textContent = "Running simulation (RocketPy aero + Pointy TVC)...";
   summaryRows.replaceChildren();
+  rocketpyRows.replaceChildren();
+  notes.hidden = true;
+  mplFigure.hidden = true;
   try {
     const response = await fetch("/api/simulate", {
       method: "POST",
@@ -189,18 +197,74 @@ function renderResults(payload) {
     ["Flight time", `${format(payload.summary.flightTimeS)} s`],
     ["Max speed", `${format(payload.summary.maxSpeedMS)} m/s`],
     ["Max gimbal", `${format(payload.summary.maxGimbalDeg)} deg`],
+    ["Max tilt (powered)", `${format(payload.summary.maxTiltPoweredDeg)} deg`],
+    ["Tilt at burnout", `${format(payload.summary.tiltAtBurnoutDeg)} deg`],
+    ["Estimator error (powered)", `${format(payload.summary.maxEstErrorPoweredDeg)} deg`],
+    ["Gyro bias", `${format(payload.summary.gyroBiasDps)} deg/s`],
+    ["Control rate", `${format(payload.summary.controlRateHz)} Hz`],
+    ["Loop latency", `${format(payload.summary.loopLatencyMs)} ms`],
     ["Final X", `${format(payload.summary.finalX)} m`],
     ["Final Y", `${format(payload.summary.finalY)} m`],
-  ].forEach(([label, value]) => {
-    const row = document.createElement("tr");
-    const labelCell = document.createElement("td");
-    const valueCell = document.createElement("td");
-    labelCell.textContent = label;
-    valueCell.textContent = value;
-    row.append(labelCell, valueCell);
-    summaryRows.append(row);
+  ].filter(([, value]) => !value.includes("NaN")).forEach(([label, value]) => appendRow(summaryRows, label, value));
+  renderRocketPy(payload.rocketpy);
+  drawPlot(payload.samples, payload.motor.points, payload.rocketpy && payload.rocketpy.samples);
+  renderMatplotlib(payload.plotPng);
+}
+
+function renderMatplotlib(plotPng) {
+  if (!plotPng) {
+    mplFigure.hidden = true;
+    return;
+  }
+  const src = `data:image/png;base64,${plotPng}`;
+  mplPlot.src = src;
+  mplDownload.href = src;
+  mplFigure.hidden = false;
+}
+
+function renderRocketPy(rp) {
+  rocketpyRows.replaceChildren();
+  notes.hidden = true;
+  if (!rp || !rp.available) {
+    appendRow(rocketpyRows, "RocketPy", rp && rp.error ? rp.error : "unavailable (using analytic aero)");
+    return;
+  }
+  const summary = rp.summary || {};
+  [
+    ["staticMarginCal", "Static margin", "cal"],
+    ["cpM", "CP from base", "m"],
+    ["dryCgM", "Dry CG", "m"],
+    ["launchCgM", "Launch CG", "m"],
+    ["apogeeM", "Apogee (passive)", "m"],
+    ["apogeeTimeS", "Apogee time", "s"],
+    ["offRailStabilityCal", "Off-rail margin", "cal"],
+    ["offRailSpeedMS", "Off-rail speed", "m/s"],
+    ["maxSpeedMS", "Max speed (passive)", "m/s"],
+    ["flightTimeS", "Flight time (passive)", "s"],
+  ].forEach(([key, label, unit]) => {
+    if (summary[key] === undefined || summary[key] === null) {
+      return;
+    }
+    appendRow(rocketpyRows, label, `${format(summary[key])} ${unit}`);
   });
-  drawPlot(payload.samples, payload.motor.points);
+  if (!rp.passiveFlightRan) {
+    appendRow(rocketpyRows, "Passive flight", "skipped (unstable)");
+  }
+  const warnings = rp.warnings || [];
+  if (warnings.length) {
+    notes.textContent = warnings.join(" ");
+    notes.hidden = false;
+  }
+}
+
+function appendRow(tbody, label, value) {
+  const row = document.createElement("tr");
+  const labelCell = document.createElement("td");
+  const valueCell = document.createElement("td");
+  labelCell.textContent = label;
+  valueCell.textContent = value;
+  row.append(labelCell, valueCell);
+  tbody.append(row);
 }
 
 function addComponentRow(name, mass, position) {
@@ -249,7 +313,8 @@ function setSpec(key, value) {
   }
 }
 
-function drawPlot(samples, motorPoints) {
+function drawPlot(samples, motorPoints, rocketpySamples) {
+  const rpSamples = Array.isArray(rocketpySamples) ? rocketpySamples : [];
   const context = plot.getContext("2d");
   const width = plot.width;
   const height = plot.height;
@@ -259,8 +324,8 @@ function drawPlot(samples, motorPoints) {
   const pad = { left: 58, right: 28, top: 24, bottom: 44 };
   const chartWidth = width - pad.left - pad.right;
   const chartHeight = height - pad.top - pad.bottom;
-  const maxTime = Math.max(...samples.map((sample) => sample.time), ...motorPoints.map((point) => point.time));
-  const maxAltitude = Math.max(1, ...samples.map((sample) => sample.altitude));
+  const maxTime = Math.max(0.001, ...samples.map((sample) => sample.time), ...motorPoints.map((point) => point.time), ...rpSamples.map((sample) => sample.time));
+  const maxAltitude = Math.max(1, ...samples.map((sample) => sample.altitude), ...rpSamples.map((sample) => sample.altitude));
   const maxThrust = Math.max(1, ...motorPoints.map((point) => point.thrust));
 
   context.strokeStyle = "#d4d0c6";
@@ -282,12 +347,19 @@ function drawPlot(samples, motorPoints) {
     "#5b513f",
   );
   drawSeries(context, motorPoints.map((point) => ({ x: point.time, y: point.thrust })), maxTime, maxThrust, pad, chartWidth, chartHeight, "#9a6b32");
+  if (rpSamples.length) {
+    drawSeries(context, rpSamples.map((sample) => ({ x: sample.time, y: sample.altitude })), maxTime, maxAltitude, pad, chartWidth, chartHeight, "#2f6b4f");
+  }
 
-  context.fillStyle = "#3c3932";
   context.font = "13px system-ui, sans-serif";
-  context.fillText("Altitude", pad.left + 8, pad.top + 16);
+  context.fillStyle = "#5b513f";
+  context.fillText("Altitude (TVC)", pad.left + 8, pad.top + 16);
   context.fillStyle = "#9a6b32";
-  context.fillText("Thrust", pad.left + 88, pad.top + 16);
+  context.fillText("Thrust", pad.left + 116, pad.top + 16);
+  if (rpSamples.length) {
+    context.fillStyle = "#2f6b4f";
+    context.fillText("Altitude (RocketPy)", pad.left + 172, pad.top + 16);
+  }
   context.fillStyle = "#625e53";
   context.fillText(`${format(maxAltitude)} m`, 8, pad.top + 6);
   context.fillText(`${format(maxTime)} s`, width - pad.right - 36, height - 14);
@@ -311,6 +383,7 @@ function drawSeries(context, points, maxX, maxY, pad, chartWidth, chartHeight, c
 
 function clearPlot() {
   plot.getContext("2d").clearRect(0, 0, plot.width, plot.height);
+  mplFigure.hidden = true;
 }
 
 function format(value) {

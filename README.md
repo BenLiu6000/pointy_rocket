@@ -125,22 +125,31 @@ The simulation suite models the full flight from ignition through parachute land
 
 ```bash
 cd simulation
+python -m venv .venv && . .venv/Scripts/activate   # recommended (RocketPy pulls scipy/netCDF4)
 pip install -r requirements.txt
 ```
 
-Requirements: `numpy`, `matplotlib`
+Requirements: `numpy`, `matplotlib`, `rocketpy` (which brings in `scipy`, `netCDF4`).
 
-### TVC Simulator GUI
+### TVC Simulator GUI (dual-engine)
 
-The browser GUI simulates one uploaded or fetched thrustcurve.org motor (`.eng`, `.rse`, or two-column `.csv`) with the TVC controller enabled. It can import `.ork`, `.rkt`, `.cdx1`, or component table body exports to fill the CG calculator, estimates finless body/nose CP, then reports predicted apogee, burnout time, burnout altitude, burnout speed, max speed, and max gimbal.
+The browser GUI combines **two flight engines** so each does what it is good at:
+
+- **RocketPy** (`rocketpy_engine.py`) provides the *trusted aerodynamics*: Barrowman centre of pressure, static margin, a real atmosphere, and a passive (uncontrolled) trajectory **when the rocket is statically stable**. A finless TVC rocket is unstable by design, so RocketPy cannot fly it passively — in that case the passive trajectory is skipped and only its static aero is used.
+- **The in-house TVC sim** (`tvc_sim.py`) flies the *actively steered* rocket (quaternion 6-DOF, RK4, PID gimbal). RocketPy cannot model thrust vectoring, so this engine owns the controlled flight — but it now uses RocketPy's centre of pressure and drag instead of a rough analytic estimate.
+
+`rocketpy_adapter.py` orchestrates the two and returns both results; `motor_curve.py` parses the thrust curve (`.eng`, `.rse`, or two-column `.csv`). Upload or fetch a thrustcurve.org motor, import an `.ork`/`.rkt`/`.cdx1`/component-table body export to fill the CG calculator, and the GUI reports both the active (TVC) flight and RocketPy's aerodynamics/stability side by side.
 
 ```bash
 cd simulation
-pip install -r requirements.txt
 python gui_server.py
 ```
 
-Open `http://127.0.0.1:8765`.
+Open `http://127.0.0.1:8765`. Each run also renders a **matplotlib** figure (altitude, thrust curve, TVC gimbal angles, speed/mass) shown below the live chart with a PNG download. The same figure can be produced from the command line:
+
+```bash
+python plots.py path/to/motor.eng    # writes matplotlib_results.png
+```
 
 ### 6-DOF Flight Simulation
 

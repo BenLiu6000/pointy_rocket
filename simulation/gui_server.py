@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import secrets
 import sys
@@ -68,7 +69,9 @@ class GuiHandler(BaseHTTPRequestHandler):
             if not isinstance(specs, dict):
                 raise ValueError("Specs payload must be an object.")
             curve = parse_motor_curve(file_name, file_content)
-            self.send_json(run_simulation(curve, specs))
+            result = run_simulation(curve, specs)
+            attach_plot(result)
+            self.send_json(result)
         except Exception as error:
             self.send_json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
 
@@ -127,6 +130,20 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", port), GuiHandler)
     print(f"Pointy Rocket GUI running at http://127.0.0.1:{port}")
     server.serve_forever()
+
+
+def attach_plot(result):
+    """Render the matplotlib figure and attach it as base64 PNG.
+
+    Guarded: a plotting failure (e.g. matplotlib missing) must never break the
+    simulation response.
+    """
+    try:
+        from plots import render_png
+
+        result["plotPng"] = base64.b64encode(render_png(result)).decode()
+    except Exception as error:  # pragma: no cover - plotting is best-effort
+        result["plotError"] = str(error)
 
 
 def fetch_motor(payload):
