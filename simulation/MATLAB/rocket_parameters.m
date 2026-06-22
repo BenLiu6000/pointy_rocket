@@ -2,20 +2,22 @@
 
 mass = 0.891;        % kg
 
-Iyy = 0.35;        % kg*m^2
+Iyy = 0.286;        % kg*m^2
 
-CG = 0.42;         % m from nose
+CG = 0.518;         % m from nose
 
-nozzle = 0.75;     % m from nose
+nozzle = 0.855;     % m from nose
+
+back = 0.801;      % m
 
 lever_arm = nozzle - CG;
 
 
 %% TVC
 
-max_gimbal = 5*pi/180;   % radians
+max_gimbal = 8*pi/180;   % radians
 
-servo_tau = 0.05;        % seconds
+servo_tau = 0.09;        % seconds
 
 
 %% Simulation

@@ -1,0 +1,25 @@
+%% Rocket properties
+
+mass = 0.891;        % kg
+
+Iyy = 0.286;        % kg*m^2
+
+CG = 0.42;         % m from nose
+
+nozzle = 0.75;     % m from nose
+
+lever_arm = nozzle - CG;
+
+
+%% TVC
+
+max_gimbal = 5*pi/180;   % radians
+
+servo_tau = 0.05;        % seconds
+
+
+%% Simulation
+
+dt = 0.001;
+
+sim_time = 5;
